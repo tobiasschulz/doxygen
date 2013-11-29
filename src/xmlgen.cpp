@@ -824,7 +824,7 @@ static void generateXMLForMember(MemberDef *md,FTextStream &ti,FTextStream &t,De
         Argument *defArg = defAli.current();
         t << "        <param>" << endl;
         if (!a->attrib.isEmpty())
-        {
+        { ////////////////////////////////////////
           t << "          <attributes>";
           writeXMLString(t,a->attrib);
           t << "</attributes>" << endl;

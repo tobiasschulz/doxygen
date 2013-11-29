@@ -1644,6 +1644,20 @@ static QCString escapeTooltip(const QCString &tooltip)
   return result;
 }
 
+static QCString stripTemplateParameter(QCString type2)
+{
+  QCString type = type2;
+  int index = type.find('<');
+  if (index >= 0) {
+    type = type.left(index);
+  }
+  if (type.contains("params")) {
+    type.replace(QRegExp("params "), "");
+    type += " ...";
+  }
+  return type;
+}
+
 static void writeBoxMemberList(FTextStream &t,
             char prot,MemberList *ml,ClassDef *scope,
             bool isStatic=FALSE,const QDict<void> *skipNames=0)
@@ -1680,7 +1694,41 @@ static void writeBoxMemberList(FTextStream &t,
           t << prot << " ";
           t << convertLabel(mma->name());
           if (!mma->isObjCMethod() && 
-              (mma->isFunction() || mma->isSlot() || mma->isSignal())) t << "()";
+              (mma->isFunction() || mma->isSlot() || mma->isSignal())) {
+				t << " (";
+				int _n=0;
+
+    ArgumentList *declAl = mma->declArgumentList();
+    ArgumentList *defAl = mma->argumentList();
+    if (declAl && declAl->count()>0)
+    {
+      ArgumentListIterator declAli(*declAl);
+      ArgumentListIterator defAli(*defAl);
+      Argument *a;
+      for (declAli.toFirst();(a=declAli.current());++declAli)
+      {
+        Argument *defArg = defAli.current();
+        if (!a->type.isEmpty())
+        {
+          t << (_n == 0 ? "" : ", ") << stripTemplateParameter(a->type);
+          ++_n;
+        }
+
+        if (defArg) ++defAli;
+      }
+    }
+
+				t << ")";
+			}
+
+                QCString returnValue = stripTemplateParameter(mma->typeString());
+                returnValue.replace(QRegExp("virtual "), "");
+                returnValue.replace(QRegExp("abstract "), "");
+                returnValue.replace(QRegExp("override "), "");
+                returnValue.replace(QRegExp("static "), "");
+                if (!returnValue.isEmpty())
+                  t << " : " << returnValue;
+
           t << "\\l";
           count++;
         }
@@ -1781,6 +1829,7 @@ void DotNode::writeBox(FTextStream &t,
     writeBoxMemberList(t,'~',m_classDef->getMemberList(MemberListType_pacMethods),m_classDef);
     writeBoxMemberList(t,'~',m_classDef->getMemberList(MemberListType_pacStaticMethods),m_classDef,TRUE);
     writeBoxMemberList(t,'#',m_classDef->getMemberList(MemberListType_proMethods),m_classDef);
+
     writeBoxMemberList(t,'#',m_classDef->getMemberList(MemberListType_proStaticMethods),m_classDef,TRUE);
     writeBoxMemberList(t,'#',m_classDef->getMemberList(MemberListType_proSlots),m_classDef);
     if (extractPrivate)
