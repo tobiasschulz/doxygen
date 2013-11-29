@@ -1860,15 +1860,26 @@ void DotNode::writeBox(FTextStream &t,
   t << "\",height=0.2,width=0.4";
   if (m_isRoot)
   {
-    t << ",color=\"black\", fillcolor=\"grey75\", style=\"filled\" fontcolor=\"black\"";
+    t << ",color=\"black\", fillcolor=\"khaki\", style=\"filled\" fontcolor=\"black\"";
   }
-  else 
+  else
   {
     static bool dotTransparent = Config_getBool("DOT_TRANSPARENT");
     if (!dotTransparent)
     {
       t << ",color=\"" << labCol << "\", fillcolor=\"";
-      t << "white";
+      static int n = 0;
+      n = (n+1)%5;
+      if (n == 0)
+        t << "#e1fce1";
+      if (n == 1)
+        t << "#fcfbe4";
+      if (n == 2)
+        t << "#fce4e4";
+      if (n == 3)
+        t << "#f1e8fc";
+      if (n == 4)
+        t << "#e5fcf4";
       t << "\", style=\"filled\"";
     }
     else
